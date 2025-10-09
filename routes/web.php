@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Staff\AktaNotarisController;
 use App\Http\Controllers\Staff\AktaPpatController;
+use App\Http\Controllers\Staff\LegnotController;
+use App\Http\Controllers\Staff\SertifikatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,7 +86,6 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
     Route::post('/akta-notaris/save', [AktaNotarisController::class, 'store'])
         ->name('staff.akta-notaris.store');
 
-    // 🔹 Edit & Update pakai UUID (bukan ID)
     Route::get('/akta-notaris/{uuid}/edit', [AktaNotarisController::class, 'edit'])
         ->name('staff.akta-notaris.edit');
 
@@ -99,7 +100,7 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
 
     /*
     |--------------------------------------------------------
-    | CRUD AKTA PPAT (PAKAI CONTROLLER) - UPDATED TO USE UUID
+    | CRUD AKTA PPAT (PAKAI CONTROLLER)
     |--------------------------------------------------------
     */
     Route::get('/akta-ppat', [AktaPpatController::class, 'index'])
@@ -111,15 +112,12 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
     Route::post('/akta-ppat/save', [AktaPpatController::class, 'store'])
         ->name('staff.akta-ppat.store');
 
-    // ✅ UBAH: {id} jadi {aktaPpat}
     Route::get('/akta-ppat/{aktaPpat}/edit', [AktaPpatController::class, 'edit'])
         ->name('staff.akta-ppat.edit');
 
-    // ✅ UBAH: {id} jadi {aktaPpat}
     Route::post('/akta-ppat/{aktaPpat}/update', [AktaPpatController::class, 'update'])
         ->name('staff.akta-ppat.update');
 
-    // ✅ UBAH: {id} jadi {aktaPpat}
     Route::delete('/akta-ppat/{aktaPpat}/delete', [AktaPpatController::class, 'destroy'])
         ->name('staff.akta-ppat.destroy');
 
@@ -128,14 +126,59 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
 
     /*
     |--------------------------------------------------------
+    | CRUD LEGNOT (PAKAI CONTROLLER)
+    |--------------------------------------------------------
+    */
+    Route::get('/legnot', [LegnotController::class, 'index'])
+        ->name('staff.legnot.index');
+
+    Route::get('/legnot/form', [LegnotController::class, 'create'])
+        ->name('staff.legnot.create');
+
+    Route::post('/legnot/save', [LegnotController::class, 'store'])
+        ->name('staff.legnot.store');
+
+    Route::get('/legnot/{legnot}/edit', [LegnotController::class, 'edit'])
+        ->name('staff.legnot.edit');
+
+    Route::post('/legnot/{legnot}/update', [LegnotController::class, 'update'])
+        ->name('staff.legnot.update');
+
+    Route::delete('/legnot/{legnot}/delete', [LegnotController::class, 'destroy'])
+        ->name('staff.legnot.destroy');
+
+    Route::get('/legnot/search', [LegnotController::class, 'search'])
+        ->name('staff.legnot.search');
+
+    /*
+    |--------------------------------------------------------
+    | CRUD SERTIFIKAT (PAKAI CONTROLLER)
+    |--------------------------------------------------------
+    */
+    Route::get('/sertifikat', [SertifikatController::class, 'index'])
+        ->name('staff.sertifikat.index');
+
+    Route::get('/sertifikat/form', [SertifikatController::class, 'create'])
+        ->name('staff.sertifikat.create');
+
+    Route::post('/sertifikat/save', [SertifikatController::class, 'store'])
+        ->name('staff.sertifikat.store');
+
+    Route::get('/sertifikat/{sertifikat:uuid}/edit', [SertifikatController::class, 'edit'])
+        ->name('staff.sertifikat.edit');
+
+    Route::post('/sertifikat/{sertifikat:uuid}/update', [SertifikatController::class, 'update'])
+        ->name('staff.sertifikat.update');
+
+    Route::delete('/sertifikat/{sertifikat:uuid}/delete', [SertifikatController::class, 'destroy'])
+        ->name('staff.sertifikat.destroy');
+
+    
+
+    /*
+    |--------------------------------------------------------
     | MENU LAIN (MASIH VIEW STATIS)
     |--------------------------------------------------------
     */
-    Route::view('/legnot', 'staff.legnot.index');
-    Route::view('/legnot/form', 'staff.legnot.form');
-
-    Route::view('/sertifikat', 'staff.sertifikat.index');
-    Route::view('/sertifikat/form', 'staff.sertifikat.form');
-
     Route::view('/detail', 'staff.detail');
 });
