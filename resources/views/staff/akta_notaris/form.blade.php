@@ -18,17 +18,17 @@
 
     <div>
         <label>Judul Akta</label><br>
-        <input type="text" name="judul" required>
+        <input type="text" name="judul" value="{{ old('judul') }}" required>
     </div>
 
     <div>
         <label>Nomor Akta</label><br>
-        <input type="text" name="nomor_akta" required>
+        <input type="text" name="nomor_akta" value="{{ old('nomor_akta') }}" required>
     </div>
 
     <div>
         <label>Tanggal Akta</label><br>
-        <input type="date" name="tanggal_akta" required>
+        <input type="date" name="tanggal_akta" value="{{ old('tanggal_akta') }}" required>
     </div>
 
     <div id="penghadap-wrapper">
@@ -42,12 +42,29 @@
 
     <div>
         <label>Saksi 1</label><br>
-        <input type="text" name="saksi1">
+        <input type="text" name="saksi1" value="{{ old('saksi1') }}">
     </div>
 
     <div>
         <label>Saksi 2</label><br>
-        <input type="text" name="saksi2">
+        <input type="text" name="saksi2" value="{{ old('saksi2') }}">
+    </div>
+
+    <div>
+        <label>Status</label><br>
+        <select name="status" id="status-select">
+            <option value="pending" {{ old('status', 'pending') == 'pending' ? 'selected' : '' }}>Pending</option>
+            <option value="selesai" {{ old('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+        </select>
+    </div>
+
+    @php
+        $showCatatan = old('status', 'pending') == 'pending';
+    @endphp
+
+    <div id="catatan-field" class="{{ $showCatatan ? '' : 'd-none' }}">
+        <label>Catatan (jika pending)</label><br>
+        <textarea name="catatan" rows="3" style="width:300px;">{{ old('catatan') }}</textarea>
     </div>
 
     <div>
@@ -74,6 +91,12 @@
     <button type="submit">Simpan</button>
 </form>
 
+<style>
+.d-none {
+    display: none !important;
+}
+</style>
+
 <script>
 function addPenghadap() {
     const wrapper = document.getElementById('penghadap-wrapper');
@@ -99,5 +122,15 @@ function removePenghadap(button) {
     const div = button.parentNode;
     div.remove();
 }
+
+// Show/hide catatan field based on status
+document.getElementById('status-select').addEventListener('change', function() {
+    const catatanField = document.getElementById('catatan-field');
+    if (this.value === 'pending') {
+        catatanField.classList.remove('d-none');
+    } else {
+        catatanField.classList.add('d-none');
+    }
+});
 </script>
 @endsection

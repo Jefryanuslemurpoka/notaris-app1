@@ -36,6 +36,8 @@ class AktaNotarisController extends Controller
             'foto_ttd' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'file_sk' => 'nullable|file|mimes:pdf,doc,docx',
             'file_warkah' => 'nullable|file|mimes:pdf,doc,docx',
+            'status' => 'nullable|in:selesai,pending',
+            'catatan' => 'nullable|string',
         ]);
 
         $akta = new AktaNotaris();
@@ -46,6 +48,8 @@ class AktaNotarisController extends Controller
         $akta->penghadap = json_encode($request->penghadap);
         $akta->saksi1 = $request->saksi1;
         $akta->saksi2 = $request->saksi2;
+        $akta->status = $request->status ?? 'pending';
+        $akta->catatan = $request->catatan;
 
         $folder = 'akta_files';
 
@@ -102,6 +106,8 @@ class AktaNotarisController extends Controller
             'foto_ttd' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'file_sk' => 'nullable|file|mimes:pdf,doc,docx',
             'file_warkah' => 'nullable|file|mimes:pdf,doc,docx',
+            'status' => 'nullable|in:selesai,pending',
+            'catatan' => 'nullable|string',
         ]);
 
         $akta->judul = $request->judul;
@@ -110,6 +116,8 @@ class AktaNotarisController extends Controller
         $akta->penghadap = json_encode($request->penghadap);
         $akta->saksi1 = $request->saksi1;
         $akta->saksi2 = $request->saksi2;
+        $akta->status = $request->status ?? $akta->status;
+        $akta->catatan = $request->catatan;
 
         $folder = 'akta_files';
 
@@ -180,5 +188,24 @@ class AktaNotarisController extends Controller
         }
 
         return view('staff.akta_notaris.index', compact('aktaList'));
+    }
+
+    // 🔹 UPDATE STATUS DAN CATATAN
+    public function updateStatus(Request $request, $uuid)
+    {
+        $request->validate([
+            'status' => 'required|in:selesai,pending',
+            'catatan' => 'nullable|string'
+        ]);
+
+        $akta = AktaNotaris::where('uuid', $uuid)->firstOrFail();
+        $akta->status = $request->status;
+        $akta->catatan = $request->catatan;
+        $akta->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diperbarui'
+        ]);
     }
 }

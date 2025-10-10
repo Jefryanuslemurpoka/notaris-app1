@@ -8,6 +8,8 @@
             <th>Penghadap</th>
             <th>Saksi 1</th>
             <th>Saksi 2</th>
+            <th>Status</th>
+            <th>Catatan</th>
             <th>File Akta</th>
             <th>Foto TTD</th>
             <th>File SK</th>
@@ -32,6 +34,44 @@
                 </td>
                 <td>{{ $akta->saksi1 ?? '-' }}</td>
                 <td>{{ $akta->saksi2 ?? '-' }}</td>
+                
+                {{-- Status dengan dropdown --}}
+                <td>
+                    <select class="status-select" data-uuid="{{ $akta->uuid }}" style="padding:5px;">
+                        <option value="pending" {{ ($akta->status ?? 'pending') == 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="selesai" {{ ($akta->status ?? 'pending') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                    </select>
+                </td>
+                
+                {{-- Catatan (muncul jika status pending) --}}
+                <td>
+                    <div class="catatan-wrapper-{{ $akta->uuid }}">
+                        @if(($akta->status ?? 'pending') == 'pending')
+                            <textarea 
+                                class="catatan-input" 
+                                data-uuid="{{ $akta->uuid }}" 
+                                placeholder="Tulis catatan..."
+                                style="width:100%; min-height:60px; padding:5px;"
+                            >{{ $akta->catatan ?? '' }}</textarea>
+                            <button 
+                                class="btn-save-catatan" 
+                                data-uuid="{{ $akta->uuid }}"
+                                style="margin-top:5px; padding:5px 10px; cursor:pointer; background:#28a745; color:white; border:none; border-radius:3px;"
+                            >
+                                Simpan
+                            </button>
+                        @else
+                            @if($akta->catatan)
+                                <div style="padding:5px; background:#f8f9fa; border-radius:3px; font-size:12px;">
+                                    {{ $akta->catatan }}
+                                </div>
+                            @else
+                                <span style="color:#888;">-</span>
+                            @endif
+                        @endif
+                    </div>
+                </td>
+                
                 <td>
                     @if ($akta->file_akta)
                         <a href="{{ asset('storage/' . $akta->file_akta) }}" target="_blank">Lihat Akta</a>
@@ -63,7 +103,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="12" style="text-align:center;">Belum ada data akta notaris</td>
+                <td colspan="14" style="text-align:center;">Belum ada data akta notaris</td>
             </tr>
         @endforelse
     </tbody>
@@ -72,3 +112,103 @@
 <div style="margin-top:10px;">
     {{ $aktaList->links() }}
 </div>
+
+{{-- Script untuk handle status dan catatan --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle perubahan status
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const uuid = this.dataset.uuid;
+            const status = this.value;
+            const catatanWrapper = document.querySelector('.catatan-wrapper-' + uuid);
+            
+            // Update status via AJAX
+            fetch("{{ url('/staff/akta-notaris') }}/" + uuid + "/update-status", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: status, catatan: '' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update tampilan catatan
+                    if (status === 'pending') {
+                        catatanWrapper.innerHTML = `
+                            <textarea 
+                                class="catatan-input" 
+                                data-uuid="${uuid}" 
+                                placeholder="Tulis catatan..."
+                                style="width:100%; min-height:60px; padding:5px;"
+                            ></textarea>
+                            <button 
+                                class="btn-save-catatan" 
+                                data-uuid="${uuid}"
+                                style="margin-top:5px; padding:5px 10px; cursor:pointer; background:#28a745; color:white; border:none; border-radius:3px;"
+                            >
+                                Simpan
+                            </button>
+                        `;
+                        attachCatatanHandler(uuid);
+                    } else {
+                        catatanWrapper.innerHTML = '<span style="color:#888;">-</span>';
+                    }
+                    alert('Status berhasil diubah!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mengubah status');
+            });
+        });
+    });
+    
+    // Handle simpan catatan
+    function attachCatatanHandler(uuid) {
+        const btn = document.querySelector(`.btn-save-catatan[data-uuid="${uuid}"]`);
+        if (btn) {
+            btn.addEventListener('click', function() {
+                saveCatatan(uuid);
+            });
+        }
+    }
+    
+    // Attach handlers untuk semua tombol simpan yang sudah ada
+    document.querySelectorAll('.btn-save-catatan').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const uuid = this.dataset.uuid;
+            saveCatatan(uuid);
+        });
+    });
+    
+    function saveCatatan(uuid) {
+        const textarea = document.querySelector(`.catatan-input[data-uuid="${uuid}"]`);
+        const catatan = textarea.value;
+        
+        fetch("{{ url('/staff/akta-notaris') }}/" + uuid + "/update-status", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ 
+                status: 'pending',
+                catatan: catatan 
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Catatan berhasil disimpan!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menyimpan catatan');
+        });
+    }
+});
+</script>

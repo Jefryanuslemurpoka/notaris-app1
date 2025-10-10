@@ -98,6 +98,10 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
     Route::get('/search', [AktaNotarisController::class, 'search'])
         ->name('staff.akta-notaris.search');
 
+        // 🔹 ROUTE BARU UNTUK UPDATE STATUS
+    Route::post('/akta-notaris/{uuid}/update-status', [AktaNotarisController::class, 'updateStatus'])
+        ->name('staff.akta-notaris.update-status');
+
     /*
     |--------------------------------------------------------
     | CRUD AKTA PPAT (PAKAI CONTROLLER)

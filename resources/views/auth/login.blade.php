@@ -861,12 +861,18 @@
                 </div>
             </div>
 
-            <!-- Right Section - Form -->
+            <!-- Right Section - Form (ORIGINAL - TIDAK DIUBAH!) -->
             <div class="login-right">
                 <div class="form-header">
                     <h2 class="form-title">Selamat Datang</h2>
-                    <p class="form-subtitle">Silakan masuk untuk mengakses dashboard Anda</p>
+                    <p class="form-subtitle">Masuk untuk mengakses dashboard Anda</p>
                 </div>
+
+                @if(session('error'))
+                    <div class="error-message">
+                        {{ session('error') }}
+                    </div>
+                @endif
 
                 <form method="POST" action="{{ route('login.post') }}" class="login-form">
                     @csrf
@@ -879,10 +885,9 @@
                                 id="email" 
                                 name="email" 
                                 class="form-input" 
-                                placeholder="nama@kantor-notaris.com" 
+                                placeholder="nama@perusahaan.com" 
                                 required 
                                 autocomplete="email"
-                                value="{{ old('email') }}"
                             >
                             <span class="input-icon">📧</span>
                         </div>
@@ -900,23 +905,23 @@
                                 required 
                                 autocomplete="current-password"
                             >
-                            <span class="input-icon">🔐</span>
+                            <span class="input-icon">🔒</span>
                         </div>
                     </div>
 
                     <button type="submit" class="btn-login">
-                        Masuk ke Dashboard
+                        MASUK KE DASHBOARD
                     </button>
 
                     <div class="trust-badge">
                         <span class="trust-icon">🛡️</span>
                         <div class="trust-text">
-                            <strong>Koneksi Aman</strong> • Data Anda dilindungi dengan enkripsi SSL 256-bit
+                            <strong>Koneksi Aman:</strong> Data Anda dilindungi dengan enkripsi SSL 256-bit
                         </div>
                     </div>
 
                     <div class="form-footer">
-                        <span class="footer-text">© 2024 Notaris Pro System</span>
+                        <span class="footer-text">© 2024 Notaris System</span>
                         <a href="#" class="footer-link">Butuh bantuan?</a>
                     </div>
                 </form>
@@ -933,3 +938,176 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
+        
+        resizeCanvas();
+
+        const particles = [];
+        const particleCount = 80;
+        
+        // Notary-themed symbols
+        const symbols = ['⚖️', '📜', '✒️', '📋', '🏛️'];
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -20;
+                this.size = Math.random() * 2.5 + 1;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * 0.8 + 0.3;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+                this.isSymbol = Math.random() > 0.85;
+                this.symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                this.pulsePhase = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.rotation += this.rotationSpeed;
+                this.pulsePhase += 0.02;
+
+                if (this.y > canvas.height + 20) {
+                    this.reset();
+                }
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                const pulse = Math.sin(this.pulsePhase) * 0.3 + 0.7;
+                
+                if (this.isSymbol) {
+                    ctx.font = `${this.size * 8}px Arial`;
+                    ctx.fillStyle = `rgba(184, 134, 11, ${this.opacity * 0.4 * pulse})`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(this.symbol, 0, 0);
+                } else {
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * pulse);
+                    gradient.addColorStop(0, `rgba(218, 165, 32, ${this.opacity})`);
+                    gradient.addColorStop(0.5, `rgba(184, 134, 11, ${this.opacity * 0.6})`);
+                    gradient.addColorStop(1, 'rgba(184, 134, 11, 0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        function init() {
+            particles.length = 0;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150 && !particles[i].isSymbol && !particles[j].isSymbol) {
+                        const opacity = (1 - distance / 150) * 0.15;
+                        ctx.strokeStyle = `rgba(184, 134, 11, ${opacity})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            connectParticles();
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            init();
+        });
+
+        // Enhanced Input Interactions (TIDAK MENGGANGGU FUNGSI LOGIN!)
+        const inputs = document.querySelectorAll('.form-input');
+        
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                const wrapper = this.parentElement;
+                if (wrapper) {
+                    wrapper.style.transform = 'scale(1.01)';
+                    wrapper.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                const wrapper = this.parentElement;
+                if (wrapper) {
+                    wrapper.style.transform = 'scale(1)';
+                }
+            });
+        });
+
+        // Premium Button Ripple Effect (TIDAK MENGGANGGU SUBMIT!)
+        const button = document.querySelector('.btn-login');
+        
+        if (button) {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.6);
+                    transform: scale(0);
+                    animation: rippleEffect 0.6s ease-out;
+                    pointer-events: none;
+                `;
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        }
+    </script>
+</body>
+</html>

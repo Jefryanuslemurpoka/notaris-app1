@@ -20,7 +20,8 @@ class AktaPpat extends Model
         'saksi_2',
         'file_akta',
         'foto_ttd_para_pihak',
-        'warkah'
+        'warkah',
+        'status'
     ];
 
     protected $casts = [

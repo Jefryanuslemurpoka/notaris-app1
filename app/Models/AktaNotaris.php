@@ -12,20 +12,21 @@ class AktaNotaris extends Model
         'judul',
         'nomor_akta',
         'tanggal_akta',
-        'penghadap', // simpan JSON jika lebih dari 1
+        'penghadap',
         'saksi1',
         'saksi2',
         'file_akta',
         'foto_ttd',
         'file_sk',
-        'file_warkah'
+        'file_warkah',
+        'status',
+        'catatan'
     ];
 
     protected $casts = [
-        'penghadap' => 'array', // otomatis convert array ke JSON di DB
+        'penghadap' => 'array',
     ];
 
-    // 🔹 Otomatis generate UUID saat create
     protected static function boot()
     {
         parent::boot();

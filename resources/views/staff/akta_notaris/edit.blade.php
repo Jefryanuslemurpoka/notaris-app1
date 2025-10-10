@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h2>Edit Akta Notaris</h2>
 
-    {{-- 🔹 Pesan sukses atau error --}}
+    {{-- Pesan sukses atau error --}}
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
@@ -19,7 +19,7 @@
         </div>
     @endif
 
-    {{-- 🔹 Form Update --}}
+    {{-- Form Update --}}
     <form action="{{ route('staff.akta-notaris.update', $akta->uuid) }}" method="POST" enctype="multipart/form-data">
         @csrf
 
@@ -70,7 +70,26 @@
             <input type="text" name="saksi2" class="form-control" value="{{ old('saksi2', $akta->saksi2) }}">
         </div>
 
-        {{-- 🔹 File Upload (optional) --}}
+        {{-- Status --}}
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" id="status-select" class="form-control">
+                <option value="pending" {{ old('status', $akta->status ?? 'pending') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="selesai" {{ old('status', $akta->status ?? 'pending') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+            </select>
+        </div>
+
+        @php
+            $showCatatan = old('status', $akta->status ?? 'pending') == 'pending';
+        @endphp
+
+        {{-- Catatan --}}
+        <div class="mb-3 {{ $showCatatan ? '' : 'd-none' }}" id="catatan-field">
+            <label class="form-label">Catatan (jika pending)</label>
+            <textarea name="catatan" class="form-control" rows="3">{{ old('catatan', $akta->catatan ?? '') }}</textarea>
+        </div>
+
+        {{-- File Upload (optional) --}}
         <div class="mb-3">
             <label class="form-label">File Akta (PDF/DOC)</label>
             <input type="file" name="file_akta" class="form-control">
@@ -116,8 +135,15 @@
     </form>
 </div>
 
-{{-- Script Tambah Input Penghadap --}}
+<style>
+.d-none {
+    display: none !important;
+}
+</style>
+
+{{-- Script Tambah Input Penghadap & Toggle Catatan --}}
 <script>
+    // Tambah Penghadap
     document.getElementById('add-penghadap').addEventListener('click', function() {
         const container = document.getElementById('penghadap-container');
         const input = document.createElement('input');
@@ -127,6 +153,16 @@
         input.required = true;
         input.placeholder = 'Nama Penghadap';
         container.appendChild(input);
+    });
+
+    // Show/Hide Catatan based on Status
+    document.getElementById('status-select').addEventListener('change', function() {
+        const catatanField = document.getElementById('catatan-field');
+        if (this.value === 'pending') {
+            catatanField.classList.remove('d-none');
+        } else {
+            catatanField.classList.add('d-none');
+        }
     });
 </script>
 @endsection
