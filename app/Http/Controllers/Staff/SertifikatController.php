@@ -46,6 +46,38 @@ class SertifikatController extends Controller
                     ? '<a href="' . asset('storage/' . $item->foto_ttd) . '" target="_blank">Lihat</a>'
                     : '-';
                 
+                $statusBadge = $item->status === 'selesai' 
+                    ? '<span style="color: green; font-weight: bold;">●</span>' 
+                    : '<span style="color: orange; font-weight: bold;">●</span>';
+                
+                $catatanDisplay = $item->status === 'pending' ? 'block' : 'none';
+                $catatanValue = htmlspecialchars($item->catatan ?? '');
+                
+                $statusHtml = '<div style="display: flex; align-items: center; gap: 5px;">
+                    ' . $statusBadge . '
+                    <select class="status-dropdown" data-uuid="' . $item->uuid . '" data-current-status="' . $item->status . '" style="padding: 4px;">
+                        <option value="pending" ' . ($item->status === 'pending' ? 'selected' : '') . '>Pending</option>
+                        <option value="selesai" ' . ($item->status === 'selesai' ? 'selected' : '') . '>Selesai</option>
+                    </select>
+                </div>
+                <div class="catatan-field" id="catatan-' . $item->uuid . '" style="display: ' . $catatanDisplay . '; margin-top: 8px;">
+                    <input type="text" 
+                           class="catatan-input" 
+                           data-uuid="' . $item->uuid . '" 
+                           placeholder="Masukkan catatan..." 
+                           value="' . $catatanValue . '"
+                           style="width: 100%; padding: 4px; box-sizing: border-box;">
+                    <button class="simpan-catatan" 
+                            data-uuid="' . $item->uuid . '" 
+                            style="margin-top: 4px; padding: 4px 8px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 3px;">
+                        Simpan
+                    </button>
+                </div>';
+                
+                $catatanText = $item->catatan 
+                    ? '<span style="color: #666;">' . htmlspecialchars($item->catatan) . '</span>'
+                    : '<span style="color: #ccc;">-</span>';
+                
                 $editUrl = route('staff.sertifikat.edit', $item);
                 $deleteUrl = route('staff.sertifikat.destroy', $item);
                 $csrfToken = csrf_token();
@@ -57,6 +89,8 @@ class SertifikatController extends Controller
                     <td>{$tanggal}</td>
                     <td>{$fileLinks}</td>
                     <td>{$fotoTtd}</td>
+                    <td>{$statusHtml}</td>
+                    <td>{$catatanText}</td>
                     <td>
                         <a href=\"{$editUrl}\">Edit</a> | 
                         <form action=\"{$deleteUrl}\" method=\"POST\" style=\"display: inline;\" onsubmit=\"return confirm('Yakin ingin menghapus?')\">
@@ -69,7 +103,7 @@ class SertifikatController extends Controller
             }
             
             if ($sertifikats->isEmpty()) {
-                $html = '<tr><td colspan="7">Belum ada data sertifikat</td></tr>';
+                $html = '<tr><td colspan="9">Belum ada data sertifikat</td></tr>';
             }
             
             $pagination = $sertifikats->links()->render();
@@ -81,6 +115,33 @@ class SertifikatController extends Controller
         }
 
         return view('staff.sertifikat.index', compact('sertifikats', 'query'));
+    }
+
+    public function updateStatus(Request $request, $uuid)
+    {
+        $sertifikat = Sertifikat::where('uuid', $uuid)->firstOrFail();
+        
+        $request->validate([
+            'status' => 'required|in:pending,selesai',
+            'catatan' => 'nullable|string'
+        ]);
+
+        $sertifikat->status = $request->status;
+        
+        // Jika status pending, simpan catatan
+        if ($request->status === 'pending') {
+            $sertifikat->catatan = $request->catatan;
+        } else {
+            // Jika selesai, hapus catatan
+            $sertifikat->catatan = null;
+        }
+        
+        $sertifikat->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diupdate'
+        ]);
     }
 
     public function create()
@@ -98,9 +159,11 @@ class SertifikatController extends Controller
             'file_sertifikat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'file_warkah' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'foto_ttd' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'status' => 'required|in:pending,selesai',
+            'catatan' => 'nullable|string'
         ]);
 
-        $data = $request->only(['nomor_sertifikat', 'nama_pemilik', 'tanggal_terbit', 'judul_dokumen']);
+        $data = $request->only(['nomor_sertifikat', 'nama_pemilik', 'tanggal_terbit', 'judul_dokumen', 'status', 'catatan']);
 
         if ($request->hasFile('file_sertifikat')) {
             $data['file_sertifikat'] = $request->file('file_sertifikat')->store('sertifikat/files', 'public');
@@ -134,9 +197,11 @@ class SertifikatController extends Controller
             'file_sertifikat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'file_warkah' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'foto_ttd' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'status' => 'required|in:pending,selesai',
+            'catatan' => 'nullable|string'
         ]);
 
-        $data = $request->only(['nomor_sertifikat', 'nama_pemilik', 'tanggal_terbit', 'judul_dokumen']);
+        $data = $request->only(['nomor_sertifikat', 'nama_pemilik', 'tanggal_terbit', 'judul_dokumen', 'status', 'catatan']);
 
         if ($request->hasFile('file_sertifikat')) {
             if ($sertifikat->file_sertifikat) {

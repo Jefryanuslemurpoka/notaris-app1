@@ -107,6 +107,10 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
     | CRUD AKTA PPAT (PAKAI CONTROLLER)
     |--------------------------------------------------------
     */
+    // ✅ Route update status (HARUS DI ATAS route resource!)
+    // ✅ BENAR (tanpa /staff di awal)
+    Route::post('/akta-ppat/{uuid}/update-status', [AktaPpatController::class, 'updateStatus'])->name('staff.akta-ppat.update-status');
+    
     Route::get('/akta-ppat', [AktaPpatController::class, 'index'])
         ->name('staff.akta-ppat.index');
 
@@ -127,6 +131,7 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
 
     Route::get('/akta-ppat/search', [AktaPpatController::class, 'search'])
         ->name('staff.akta-ppat.search');
+    
 
     /*
     |--------------------------------------------------------
@@ -159,6 +164,10 @@ Route::prefix('staff')->middleware(['role:staff'])->group(function () {
     | CRUD SERTIFIKAT (PAKAI CONTROLLER)
     |--------------------------------------------------------
     */
+    
+    // Route update status (HARUS DI ATAS route resource!)
+    Route::post('/sertifikat/{uuid}/update-status', [SertifikatController::class, 'updateStatus'])
+        ->name('staff.sertifikat.update-status');
     Route::get('/sertifikat', [SertifikatController::class, 'index'])
         ->name('staff.sertifikat.index');
 

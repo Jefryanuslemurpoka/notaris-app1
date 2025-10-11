@@ -19,6 +19,8 @@ class Sertifikat extends Model
         'file_sertifikat',
         'file_warkah',
         'foto_ttd',
+        'status',
+        'catatan',
     ];
 
     protected $casts = [

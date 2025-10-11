@@ -4,7 +4,7 @@
     <h2>{{ isset($sertifikat) ? 'Edit' : 'Tambah' }} Sertifikat</h2>
 
     @if($errors->any())
-        <div>
+        <div style="color: red; margin-bottom: 15px;">
             <ul>
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -46,7 +46,31 @@
         @endif
         <input type="file" name="foto_ttd" accept=".jpg,.jpeg,.png"><br><br>
 
+        <label>Status *</label><br>
+        <select name="status" id="statusSelect" required>
+            <option value="pending" {{ old('status', $sertifikat->status ?? 'pending') === 'pending' ? 'selected' : '' }}>Pending</option>
+            <option value="selesai" {{ old('status', $sertifikat->status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+        </select><br><br>
+
+        <div id="catatanField" style="{{ old('status', $sertifikat->status ?? 'pending') === 'pending' ? '' : 'display: none;' }}">
+            <label>Catatan (Opsional, hanya untuk status Pending)</label><br>
+            <textarea name="catatan" rows="4" style="width: 100%; max-width: 500px;" placeholder="Masukkan catatan jika ada...">{{ old('catatan', $sertifikat->catatan ?? '') }}</textarea><br><br>
+        </div>
+
         <button type="submit">{{ isset($sertifikat) ? 'Update' : 'Simpan' }}</button>
         <a href="{{ route('staff.sertifikat.index') }}">Batal</a>
     </form>
+
+    <script>
+        const statusSelect = document.getElementById('statusSelect');
+        const catatanField = document.getElementById('catatanField');
+
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'pending') {
+                catatanField.style.display = 'block';
+            } else {
+                catatanField.style.display = 'none';
+            }
+        });
+    </script>
 @endsection

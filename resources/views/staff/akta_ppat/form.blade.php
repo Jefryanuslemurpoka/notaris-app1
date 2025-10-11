@@ -94,6 +94,13 @@
             @endif
         </div>
         <br>
+        <label>Status:</label>
+        
+        <select name="status" required>
+            <option value="pending">Pending</option>
+            <option value="selesai">Selesai</option>
+        </select>
+        <br><br>
 
         {{-- Tombol simpan --}}
         <button type="submit">{{ isset($akta) ? 'Update' : 'Simpan' }}</button>

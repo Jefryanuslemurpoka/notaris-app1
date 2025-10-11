@@ -26,7 +26,9 @@ class AktaPpatController extends Controller
             'saksi_2' => 'nullable|string|max:255',
             'file_akta' => 'required|file|mimes:pdf|max:10240',
             'foto_ttd_para_pihak' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
-            'warkah' => 'nullable|file|mimes:pdf|max:10240'
+            'warkah' => 'nullable|file|mimes:pdf|max:10240',
+            'status' => 'nullable|in:pending,selesai',
+            'catatan' => 'nullable|string',
         ]);
 
         $fileAktaPath = $request->file('file_akta')->store('akta_ppat', 'public');
@@ -51,7 +53,9 @@ class AktaPpatController extends Controller
             'saksi_2' => $request->saksi_2,
             'file_akta' => $fileAktaPath,
             'foto_ttd_para_pihak' => $fotoTtdPath,
-            'warkah' => $warkahPath
+            'warkah' => $warkahPath,
+            'status' => $request->status ?? 'pending',
+            'catatan' => $request->catatan,
         ]);
 
         return redirect()->route('staff.akta-ppat.index')->with('success', 'Akta PPAT berhasil disimpan');
@@ -59,17 +63,15 @@ class AktaPpatController extends Controller
 
     public function index()
     {
-        $aktaPpat = AktaPpat::latest()->paginate(50); // ✅ ubah dari get() jadi paginate(50)
+        $aktaPpat = AktaPpat::latest()->paginate(50);
         return view('staff.akta_ppat.index', compact('aktaPpat'));
     }
 
-    // ✅ UBAH: gunakan type-hinted model binding
     public function edit(AktaPpat $aktaPpat)
     {
         return view('staff.akta_ppat.form', ['akta' => $aktaPpat]);
     }
 
-    // ✅ UBAH: gunakan type-hinted model binding
     public function update(Request $request, AktaPpat $aktaPpat)
     {
         $request->validate([
@@ -82,7 +84,9 @@ class AktaPpatController extends Controller
             'saksi_2' => 'nullable|string|max:255',
             'file_akta' => 'nullable|file|mimes:pdf|max:10240',
             'foto_ttd_para_pihak' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
-            'warkah' => 'nullable|file|mimes:pdf|max:10240'
+            'warkah' => 'nullable|file|mimes:pdf|max:10240',
+            'status' => 'nullable|in:pending,selesai',
+            'catatan' => 'nullable|string',
         ]);
 
         $data = [
@@ -93,6 +97,8 @@ class AktaPpatController extends Controller
             'pihak_2' => $request->pihak_2,
             'saksi_1' => $request->saksi_1,
             'saksi_2' => $request->saksi_2,
+            'status' => $request->status ?? 'pending',
+            'catatan' => $request->catatan,
         ];
 
         if ($request->hasFile('file_akta')) {
@@ -119,7 +125,6 @@ class AktaPpatController extends Controller
         return redirect()->route('staff.akta-ppat.index')->with('success', 'Akta PPAT berhasil diupdate');
     }
 
-    // ✅ UBAH: gunakan type-hinted model binding
     public function destroy(AktaPpat $aktaPpat)
     {
         Storage::disk('public')->delete($aktaPpat->file_akta);
@@ -143,9 +148,43 @@ class AktaPpatController extends Controller
             ->orWhere('nomor_akta', 'LIKE', "%{$query}%")
             ->orWhere('pihak_1', 'LIKE', "%{$query}%")
             ->orWhere('pihak_2', 'LIKE', "%{$query}%")
+            ->orWhere('status', 'LIKE', "%{$query}%")
             ->latest()
             ->paginate(50);
         
         return view('staff.akta_ppat.index', compact('aktaPpat'));
+    }
+
+    // ✅ METHOD BARU: Update Status via AJAX
+    public function updateStatus(Request $request, $uuid)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:pending,selesai',
+                'catatan' => 'nullable|string',
+            ]);
+
+            $aktaPpat = AktaPpat::where('uuid', $uuid)->firstOrFail();
+            $aktaPpat->status = $request->status;
+            
+            // Jika status selesai, hapus catatan
+            if ($request->status == 'selesai') {
+                $aktaPpat->catatan = null;
+            } else {
+                $aktaPpat->catatan = $request->catatan;
+            }
+            
+            $aktaPpat->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status berhasil diupdate'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

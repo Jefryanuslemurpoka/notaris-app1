@@ -9,9 +9,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('akta_ppat', function (Blueprint $table) {
-            // Cek apakah kolom 'status' sudah ada
-            if (!Schema::hasColumn('akta_ppat', 'status')) {
-                $table->enum('status', ['pending', 'selesai'])->default('pending')->after('warkah');
+            // Cek apakah kolom 'catatan' sudah ada
+            if (!Schema::hasColumn('akta_ppat', 'catatan')) {
+                $table->text('catatan')->nullable()->after('status');
             }
         });
     }
@@ -20,8 +20,8 @@ return new class extends Migration
     {
         Schema::table('akta_ppat', function (Blueprint $table) {
             // Drop hanya jika kolom ada
-            if (Schema::hasColumn('akta_ppat', 'status')) {
-                $table->dropColumn('status');
+            if (Schema::hasColumn('akta_ppat', 'catatan')) {
+                $table->dropColumn('catatan');
             }
         });
     }
